@@ -14,8 +14,10 @@ export const createEventService = async (data, user) => {
     throw new Error("Admin is not mapped to any college");
   }
 
-  const { title, description, category, location, startDate, endDate, scope } =
-    data;
+  const { 
+    title, description, category, location, startDate, endDate, scope,
+    maxSeats, isPaid, ticketPrice, isTeamEvent, maxTeamSize
+  } = data;
 
   const event = await prisma.event.create({
     data: {
@@ -26,9 +28,16 @@ export const createEventService = async (data, user) => {
       startDate: new Date(startDate),
       endDate: new Date(endDate),
       scope: scope ?? "COLLEGE",
+      
+      maxSeats: maxSeats !== undefined ? parseInt(maxSeats) : 100,
+      isPaid: isPaid ?? false,
+      ticketPrice: ticketPrice !== undefined ? parseFloat(ticketPrice) : 0,
+      isTeamEvent: isTeamEvent ?? false,
+      maxTeamSize: maxTeamSize !== undefined ? parseInt(maxTeamSize) : 1,
 
       // CRITICAL: always from token, never from body
       collegeId: user.collegeId,
+      createdBy: user.id,
     },
   });
 
@@ -63,13 +72,8 @@ export const getAllEventsService = async (filters, user) => {
 
   // Case 3: college_admins
   else if (user.role === "college_admin") {
-    where.OR = [
-      { scope: "GLOBAL" },
-      {
-        scope: "COLLEGE",
-        collegeId: user.collegeId ?? "__none__",
-      },
-    ];
+    // Admins only view native college events to manage them
+    where.collegeId = user.collegeId ?? "__none__";
   }
 
   // Case 4: super_admin see all (no extra filter)
@@ -85,6 +89,19 @@ export const getAllEventsService = async (filters, user) => {
           name: true,
         },
       },
+      _count: {
+        select: { 
+          registrations: {
+            where: { status: "approved" }
+          }
+        }
+      },
+      ...(user?.id ? {
+        registrations: {
+          where: { userId: user.id },
+          select: { id: true, status: true }
+        }
+      } : {})
     },
   });
 

@@ -9,7 +9,11 @@ import cors from "cors";
 import authRoutes from "./routes/auth.routes.js";
 import eventRoutes from "./routes/event.routes.js"
 import collegeRoutes from "./routes/college.routes.js";
-
+import registrationRoutes from "./routes/registration.routes.js"
+import paymentRoutes from "./routes/payment.routes.js";
+import teamRoutes from "./routes/team.routes.js";
+import invitationRoutes from "./routes/invitation.routes.js";
+import analyticsRoutes from "./routes/analytics.routes.js";
 
 const app = express();
 
@@ -26,6 +30,11 @@ app.get("/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/colleges", collegeRoutes);
+app.use("/api/registrations", registrationRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api/teams", teamRoutes);
+app.use("/api/invitations", invitationRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 const PORT = process.env.PORT || 5001;
 
