@@ -41,3 +41,6 @@ const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+import adminRoutes from './routes/admin.routes.js';
+app.use('/api/admin', adminRoutes);
