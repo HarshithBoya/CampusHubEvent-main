@@ -1,38 +1,34 @@
-import prisma from '../config/prisma.js';
+import { createFeedbackService, getEventFeedbacksService } from "../services/feedback.service.js";
 
-export const getAllFeedbacks = async (req, res) => {
-    try {
-        const feedbacks = await prisma.feedback.findMany({
-            include: {
-                user: true,
-                event: true
-            },
-            orderBy: {
-                timestamp: 'desc'
-            }
-        });
-
-        res.json({ feedbacks });
-
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+export const createFeedback = async (req, res) => {
+  try {
+    const { eventId, rating, comments } = req.body;
+    
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ message: "Rating must be between 1 and 5." });
     }
+
+    const feedback = await createFeedbackService(eventId, req.user, rating, comments);
+
+    res.status(201).json({
+      message: "Feedback submitted successfully",
+      feedback
+    });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
 };
 
-export async function getFeedbackSummary(req, res) {
-    try {
-        const totalFeedbacks = await prisma.feedback.count();
+export const getEventFeedbacks = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    
+    const feedbacks = await getEventFeedbacksService(eventId, req.user);
 
-        const avg = await feedback.aggregate({
-            _avg: { rating: true }
-        });
-
-        res.json({
-            totalFeedbacks,
-            averageRating: avg._avg.rating || 0
-        });
-
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-}
+    res.status(200).json({
+      feedbacks
+    });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
